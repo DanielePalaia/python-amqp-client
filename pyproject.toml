@@ -18,4 +18,4 @@ typing_extensions ="^4.11.0"
 certifi = "^2024.8.30"
 
 [tool.poetry.scripts]
-main = 'rabbitmq_amqp_python_client.main-pyamqp:main'
+main = 'rabbitmq_amqp_python_client.main:main'
