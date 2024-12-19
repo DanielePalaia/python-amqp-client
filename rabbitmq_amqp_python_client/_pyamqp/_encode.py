@@ -945,17 +945,17 @@ def encode_payload(output: bytearray, payload: Message) -> bytes:
                 },
             )
 
-    if payload[7]:  # value
-        encode_value(
-            output,
-            {
-                TYPE: AMQPTypes.described,
-                VALUE: (
-                    {TYPE: AMQPTypes.ulong, VALUE: 0x00000077},
-                    {TYPE: None, VALUE: payload[7]},
-                ),
-            },
-        )
+    #if payload[7]:  # value
+    encode_value(
+        output,
+        {
+            TYPE: AMQPTypes.described,
+            VALUE: (
+                {TYPE: AMQPTypes.ulong, VALUE: 0x00000077},
+                {TYPE: None, VALUE: payload[7]},
+            ),
+        },
+    )
 
     if payload[8]:  # footer
         encode_value(
