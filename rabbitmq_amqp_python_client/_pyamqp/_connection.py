@@ -174,6 +174,7 @@ class Connection:  # pylint:disable=too-many-instance-attributes
                 **kwargs,
             )
         else:
+            print("simple transport")
             self._transport = Transport(
                 parsed_url.netloc,
                 transport_type=self._transport_type,
@@ -181,6 +182,7 @@ class Connection:  # pylint:disable=too-many-instance-attributes
                 network_trace_params=self._network_trace_params,
                 **kwargs,
             )
+        print("transport type" + str(transport_type))
         self._max_frame_size: int = max_frame_size
         self._remote_max_frame_size: Optional[int] = None
         self._channel_max: int = channel_max
@@ -233,7 +235,9 @@ class Connection:  # pylint:disable=too-many-instance-attributes
         """
         try:
             if not self.state:
+                print("before connecting")
                 self._transport.connect()
+                print("after connecting")
                 self._set_state(ConnectionState.START)
             self._transport.negotiate()
             self._outgoing_header()
@@ -247,6 +251,7 @@ class Connection:  # pylint:disable=too-many-instance-attributes
             else:
                 self._set_state(ConnectionState.HDR_SENT)
         except (OSError, IOError, SSLError, socket.error) as exc:
+            print("error here")
             # FileNotFoundError is being raised for exception parity with uamqp when invalid
             # `connection_verify` file path is passed in. Remove later when resolving issue #27128.
             if isinstance(exc, FileNotFoundError) and exc.filename and "ca_certs" in exc.filename:

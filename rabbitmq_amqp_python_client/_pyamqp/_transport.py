@@ -183,18 +183,22 @@ class _AbstractTransport(object):  # pylint: disable=too-many-instance-attribute
         self.socket_settings = socket_settings
         self.socket_lock = Lock()
 
-        self._use_tls = use_tls
+        #self._use_tls = use_tls
+        self._use_tls = False
 
     def connect(self):
+        print("external connect")
         try:
             # are we already connected?
             if self.connected:
                 return
             self._connect(self.host, self.port, self.connect_timeout)
+            print("after internal connect")
             self._init_socket(
                 self.socket_settings,
                 self.socket_timeout,
             )
+            print("after init socker")
             # we've sent the banner; signal connect
             # EINTR, EAGAIN, EWOULDBLOCK would signal that the banner
             # has _not_ been sent
@@ -258,6 +262,7 @@ class _AbstractTransport(object):  # pylint: disable=too-many-instance-attribute
                 sock.settimeout(prev)
 
     def _connect(self, host, port, timeout):
+        print("inside transport connect")
         e = None
 
         # Below we are trying to avoid additional DNS requests for AAAA if A
@@ -285,6 +290,7 @@ class _AbstractTransport(object):  # pylint: disable=too-many-instance-attribute
                     raise e if e is not None else socket.error("failed to resolve broker hostname") from exc
                 continue  # pragma: no cover
 
+            print("pass")
             # now that we have address(es) for the hostname, connect to broker
             for i, res in enumerate(entries):
                 af, socktype, proto, _, sa = res
@@ -305,6 +311,7 @@ class _AbstractTransport(object):  # pylint: disable=too-many-instance-attribute
                     if i + 1 >= entries_num and n + 1 >= addr_types_num:
                         raise
                 else:
+                    print("connection established")
                     # hurray, we established connection
                     return
 
@@ -700,7 +707,9 @@ class WebSocketTransport(_AbstractTransport):
 
     def connect(self):
         http_proxy_host, http_proxy_port, http_proxy_auth = None, None, None
+        print("insisde transport connect")
         if self._http_proxy:
+            print("http proxy")
             http_proxy_host = self._http_proxy["proxy_hostname"]
             http_proxy_port = self._http_proxy["proxy_port"]
             username = self._http_proxy.get("username", None)
@@ -717,6 +726,7 @@ class WebSocketTransport(_AbstractTransport):
         except ImportError:
             raise ImportError("Please install websocket-client library to use sync websocket transport.") from None
         try:
+            print("creating connection")
             self.sock = create_connection(
                 url=(
                     "wss://{}".format(self._custom_endpoint or self._host)

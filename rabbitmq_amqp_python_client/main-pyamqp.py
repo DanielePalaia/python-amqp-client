@@ -13,7 +13,7 @@ def main():
     _properties = {}
     _properties["hostname"] = "/"
 
-    conn = Connection("amqp://guest:guest@localhost:5672/", properties=_properties, auth=SASLAnonymousAuth())
+    conn = Connection("amqp://guest:guest@localhost:5672/",  auth=SASLAnonymousAuth())
     conn.open()
 
 
@@ -22,7 +22,7 @@ def main():
 
 
 
-    #client = SendClient("amqp://guest:guest@localhost:5672/", "/management", auth=SASLAnonymousAuth())
+    #client = SendClient("amqp://guest:guest@localhost:5672/", "/management", auth=SASLAno nymousAuth())
 
     #client.open()
 
