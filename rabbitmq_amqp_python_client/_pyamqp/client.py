@@ -306,9 +306,11 @@ class AMQPClient(object):  # pylint: disable=too-many-instance-attributes
         :type connection: ~pyamqp.Connection
         """
         # pylint: disable=protected-access
-        if self._session:
-            return  # already open.
+        #if self._session:
+        #    return  # already open.
         if connection:
+            print("getting session")
+            self._session = connection.session()
             self._connection = connection
             self._external_connection = True
         elif not self._connection:
@@ -330,6 +332,7 @@ class AMQPClient(object):  # pylint: disable=too-many-instance-attributes
             )
             self._connection.open()
         if not self._session:
+            print("not session")
             self._session = self._connection.create_session(
                 incoming_window=self._incoming_window,
                 outgoing_window=self._outgoing_window,
@@ -340,6 +343,7 @@ class AMQPClient(object):  # pylint: disable=too-many-instance-attributes
             self._keep_alive_thread.daemon = True
             self._keep_alive_thread.start()
         if self._auth.auth_type == AUTH_TYPE_CBS:
+            print("cbs authenticator")
             self._cbs_authenticator = CBSAuthenticator(
                 session=self._session, auth=self._auth, auth_timeout=self._auth_timeout
             )
@@ -671,8 +675,10 @@ class SendClient(AMQPClient):
         self.open()
         message_delivery = _MessageDelivery(message, MessageDeliveryState.WaitingToBeSent, expire_time)
         while not self.client_ready():
+            print("client not ready")
             time.sleep(0.05)
 
+        print("client ready")
         self._transfer_message(message_delivery, timeout)
         running = True
         while running and message_delivery.state not in MESSAGE_DELIVERY_DONE_STATES:

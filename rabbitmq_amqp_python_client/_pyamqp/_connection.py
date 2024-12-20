@@ -363,6 +363,9 @@ class Connection:  # pylint:disable=too-many-instance-attributes
         except Exception:  # pylint:disable=try-except-raise
             raise
 
+        def session(self) -> Session:
+            return self._session
+
     def _outgoing_header(self) -> None:
         """Send the AMQP protocol header to initiate the connection."""
         self._last_frame_sent_time = time.time()
@@ -812,7 +815,7 @@ class Connection:  # pylint:disable=too-many-instance-attributes
         """
         assigned_channel = self._get_next_outgoing_channel()
         kwargs["offered_capabilities"] = offered_capabilities
-        session = Session(
+        self._session = Session(
             self,
             assigned_channel,
             name=name,
@@ -828,8 +831,13 @@ class Connection:  # pylint:disable=too-many-instance-attributes
             network_trace_params=dict(self._network_trace_params),
             **kwargs,
         )
-        self._outgoing_endpoints[assigned_channel] = session
-        return session
+        self._outgoing_endpoints[assigned_channel] = self._session
+        self._session.begin()
+
+        return self._session
+
+    def session(self):
+        return self._session
 
     def open(self, wait: bool = False) -> None:
         """Send an Open frame to start the connection.
@@ -840,6 +848,7 @@ class Connection:  # pylint:disable=too-many-instance-attributes
         :raises ValueError: If `wait` is set to `False` and `allow_pipelined_open` is disabled.
         :rtype: None
         """
+        print("opening")
         self._connect()
         self._outgoing_open()
         if self.state == ConnectionState.HDR_EXCH:
