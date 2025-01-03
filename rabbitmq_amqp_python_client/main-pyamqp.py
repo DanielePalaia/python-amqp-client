@@ -1,15 +1,12 @@
+from . import _pyamqp
 from ._pyamqp.client import AMQPClient, SendClient, ReceiveClient
 from ._pyamqp.authentication import SASLPlainAuth, SASLAnonymousCredential, SASTokenAuth, SASLAnonymousAuth
 from ._pyamqp._connection import Connection
 from ._pyamqp.sasl import SASLAnonymousCredential
 
-from ._pyamqp._encode import encode_payload
 from ._pyamqp.message import Message, Properties
 from ._pyamqp.constants import SenderSettleMode, ReceiverSettleMode
-from ._pyamqp.endpoints import Target
-from ._pyamqp.constants import TransportType
-
-from ._pyamqp.utils import AMQPTypes
+from ._pyamqp.endpoints import Target, Source
 
 import time
 
@@ -27,34 +24,39 @@ def main():
     conn.open()
     INCOMING_WINDOW = 64 * 1024
     OUTGOING_WINDOW = 64 * 1024
-    conn.create_session()
+    conn.create_session(incoming_window=INCOMING_WINDOW,outgoing_window=OUTGOING_WINDOW,)
 
     link_properties = {}
     link_properties["paired"] = True
 
-    sender = SendClient("amqp://localhost:5672/", "/management", auth=SASLAnonymousAuth(), properties=_properties, transport_type=TransportType.Amqp, send_settle_mode=SenderSettleMode.Settled, receive_settle_mode=ReceiverSettleMode.First, name="management-link-pair", link_properties=link_properties)
+    sender = SendClient("vhost:/", Target(address="/management", dynamic=False, timeout=10, dynamic_node_properties=False), auth=SASLAnonymousAuth(), properties=_properties, send_settle_mode=SenderSettleMode.Settled, receive_settle_mode=ReceiverSettleMode.First, client_name="management-link-pair", link_properties=link_properties, settled=True)
 
-    receiver = ReceiveClient("amqp://localhost:5672/", "/management", auth=SASLAnonymousAuth(), properties=_properties,
-                        send_settle_mode=SenderSettleMode.Settled, link_credit=100, receive_settle_mode=ReceiverSettleMode.First,  transport_type=TransportType.Amqp, name="management-link-pair",
-                        link_properties=link_properties)
+    #receiver = ReceiveClient("vhost:/", Source(address="/management", dynamic=False, timeout=10, dynamic_node_properties=False) , auth=SASLAnonymousAuth(), properties=_properties,
+    #                    send_settle_mode=SenderSettleMode.Settled, link_credit=100, receive_settle_mode=ReceiverSettleMode.First, client_name="management-link-pair",
+    #                    link_properties=link_properties, settled=True)
 
+    #receiver.open(conn)
     sender.open(conn)
-    receiver.open(conn)
 
-    time.sleep(5)
+
+
 
 
     message = Message(value=None, properties=Properties(message_id="134234234", reply_to= "$me", subject="DELETE", to="/exchanges/test"))
 
-    sender.send_message(message)
+
+    #message_received=receiver.receive_messages_iter()
+    print("sending")
+    sender.mgmt_request(message, operation="DELETE", operation_type="DELETE", node="/management")
+
+    time.sleep(65)
 
     print("message sent")
 
-    message = receiver.receive_messages_iter()
 
-    #print("message received:" +  str(message))
 
-    time.sleep(10)
+    print("message received:" +  str(message_received))
+
 
 
 

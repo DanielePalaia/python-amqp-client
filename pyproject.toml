@@ -6,7 +6,7 @@ authors = ["Daniele Palaia <dpalaia@vmware.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 python-qpid-proton = "^0.39.0"
 typing_extensions ="^4.11.0"
 

@@ -40,22 +40,28 @@ class ManagementLink(object):  # pylint:disable=too-many-instance-attributes
         self._pending_operations = []
         self._session = session
         self._network_trace_params = kwargs.get("network_trace_params")
+
+        link_properties = {}
+        link_properties["paired"] = True
+
         self._request_link: SenderLink = session.create_sender_link(
             endpoint,
             source_address=endpoint,
             on_link_state_change=self._on_sender_state_change,
-            send_settle_mode=SenderSettleMode.Unsettled,
+            send_settle_mode=SenderSettleMode.Settled,
             rcv_settle_mode=ReceiverSettleMode.First,
             network_trace=kwargs.get("network_trace", False),
+            properties=link_properties,
         )
         self._response_link: ReceiverLink = session.create_receiver_link(
             endpoint,
             target_address=endpoint,
             on_link_state_change=self._on_receiver_state_change,
             on_transfer=self._on_message_received,
-            send_settle_mode=SenderSettleMode.Unsettled,
+            send_settle_mode=SenderSettleMode.Settled,
             rcv_settle_mode=ReceiverSettleMode.First,
             network_trace=kwargs.get("network_trace", False),
+            properties=link_properties,
         )
         self._on_amqp_management_error = kwargs.get("on_amqp_management_error")
         self._on_amqp_management_open_complete = kwargs.get("on_amqp_management_open_complete")

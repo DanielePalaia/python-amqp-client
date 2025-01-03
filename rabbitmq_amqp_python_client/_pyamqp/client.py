@@ -295,6 +295,7 @@ class AMQPClient(object):  # pylint: disable=too-many-instance-attributes
         raise retry_settings["history"][-1]
 
     def open(self, connection=None):
+        print("opening... ")
         """Open the client. The client can create a new Connection
         or an existing Connection can be passed in. This existing Connection
         may have an existing CBS authentication Session, which will be
@@ -334,6 +335,7 @@ class AMQPClient(object):  # pylint: disable=too-many-instance-attributes
         if not self._session:
             print("not session")
             self._session = self._connection.create_session(
+                connection=self._connection,
                 incoming_window=self._incoming_window,
                 outgoing_window=self._outgoing_window,
             )
@@ -406,6 +408,7 @@ class AMQPClient(object):  # pylint: disable=too-many-instance-attributes
         :return: Whether the handler is ready to process messages.
         :rtype: bool
         """
+        #print("inside client ready")
         if not self.auth_complete():
             return False
         if not self._client_ready():
@@ -469,6 +472,7 @@ class AMQPClient(object):  # pylint: disable=too-many-instance-attributes
                 self._mgmt_links[node] = mgmt_link
                 mgmt_link.open()
 
+        print("insde management")
         while not self.client_ready():
             time.sleep(0.05)
 
@@ -672,7 +676,7 @@ class SendClient(AMQPClient):
 
     def _send_message_impl(self, message, *, timeout: float = 0):
         expire_time = (time.time() + timeout) if timeout else None
-        self.open()
+        #self.open()
         message_delivery = _MessageDelivery(message, MessageDeliveryState.WaitingToBeSent, expire_time)
         while not self.client_ready():
             print("client not ready")
@@ -706,6 +710,7 @@ class SendClient(AMQPClient):
          0, the client will continue to wait until the message is sent or error happens. The
          default is 0.
         """
+        print("message is: " + str(message))
         self._do_retryable_operation(self._send_message_impl, message=message, timeout=timeout, **kwargs)
 
 
@@ -897,7 +902,7 @@ class ReceiveClient(AMQPClient):  # pylint:disable=too-many-instance-attributes
         timeout = time.time() + timeout if timeout else 0
         receiving = True
         batch: List[Message] = []
-        self.open()
+        #self.open()
         while len(batch) < max_batch_size:
             try:
                 # TODO: This drops the transfer frame data
@@ -990,6 +995,7 @@ class ReceiveClient(AMQPClient):  # pylint:disable=too-many-instance-attributes
         :rtype: generator[~pyamqp.message.Message]
         """
         self._message_received_callback = on_message_received
+        print("inside receive_messages_iterXXXXXXXXXXXX")
         return self._message_generator(timeout=timeout)
 
     def _message_generator(self, timeout=None):
@@ -999,7 +1005,8 @@ class ReceiveClient(AMQPClient):  # pylint:disable=too-many-instance-attributes
         :return: A generator of messages.
         :rtype: generator[~pyamqp.message.Message]
         """
-        self.open()
+        print("inside _message_generatorXXXXXXXXXXXX")
+        #self.open()
         self._timeout_reached = False
         receiving = True
         message = None
@@ -1022,6 +1029,7 @@ class ReceiveClient(AMQPClient):  # pylint:disable=too-many-instance-attributes
 
         finally:
             if self._shutdown:
+                print("closing")
                 self.close()
 
     @overload

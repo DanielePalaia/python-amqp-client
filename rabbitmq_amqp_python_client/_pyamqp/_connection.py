@@ -127,6 +127,8 @@ class Connection:  # pylint:disable=too-many-instance-attributes
             self._port = PORT
         self.state: Optional[ConnectionState] = None
 
+        self._session=None
+
         # Set the port for AmqpOverWebsocket
         if transport_type.value == TransportType.AmqpOverWebsocket.value:
             self._port = WEBSOCKET_PORT

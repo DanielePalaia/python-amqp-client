@@ -42,22 +42,26 @@ class ManagementLink(object):  # pylint:disable=too-many-instance-attributes
         self._pending_operations = []
         self._session = session
         self._network_trace_params = kwargs.get("network_trace_params")
+        link_properties = {}
+        link_properties["paired"] = True
         self._request_link: SenderLink = session.create_sender_link(
             endpoint,
             source_address=endpoint,
             on_link_state_change=self._on_sender_state_change,
-            send_settle_mode=SenderSettleMode.Unsettled,
+            send_settle_mode=SenderSettleMode.Settled,
             rcv_settle_mode=ReceiverSettleMode.First,
             network_trace=kwargs.get("network_trace", False),
+            properties=link_properties
         )
         self._response_link: ReceiverLink = session.create_receiver_link(
             endpoint,
             target_address=endpoint,
             on_link_state_change=self._on_receiver_state_change,
             on_transfer=self._on_message_received,
-            send_settle_mode=SenderSettleMode.Unsettled,
+            send_settle_mode=SenderSettleMode.Settled,
             rcv_settle_mode=ReceiverSettleMode.First,
             network_trace=kwargs.get("network_trace", False),
+            properties=link_properties
         )
         self._on_amqp_management_error = kwargs.get("on_amqp_management_error")
         self._on_amqp_management_open_complete = kwargs.get("on_amqp_management_open_complete")
@@ -222,16 +226,16 @@ class ManagementLink(object):  # pylint:disable=too-many-instance-attributes
          to the management request must be received.
         :rtype: None
         """
-        message.application_properties["operation"] = operation
-        message.application_properties["type"] = type
+        #message.application_properties["operation"] = operation
+        #message.application_properties["type"] = type
         if locales:
             message.application_properties["locales"] = locales
-        try:
+        #try:
             # TODO: namedtuple is immutable, which may push us to re-think about the namedtuple approach for Message
-            new_properties = message.properties._replace(message_id=self.next_message_id)
-        except AttributeError:
-            new_properties = Properties(message_id=self.next_message_id)
-        message = message._replace(properties=new_properties)
+        #    new_properties = message.properties._replace(message_id=self.next_message_id)
+        #except AttributeError:
+        #    new_properties = Properties(message_id=self.next_message_id)
+        #message = message._replace(properties=new_properties)
         expire_time = (time.time() + timeout) if timeout else None
         message_delivery = _MessageDelivery(message, MessageDeliveryState.WaitingToBeSent, expire_time)
 
